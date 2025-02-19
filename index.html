@@ -10,6 +10,7 @@
         button { padding: 15px 25px; font-size: 16px; margin: 10px; border: none; cursor: pointer; border-radius: 5px; }
         .on { background-color: #28a745; color: white; }
         .off { background-color: #dc3545; color: white; }
+        #status { margin-top: 20px; font-size: 18px; color: #555; }
     </style>
 </head>
 <body>
@@ -17,6 +18,7 @@
     <p>Controla el LED del ESP32 desde aquí:</p>
     <button class="on" onclick="controlLed('ON')">Encender LED</button>
     <button class="off" onclick="controlLed('OFF')">Apagar LED</button>
+    <p id="status">Estado del LED: Desconocido</p>
 
     <script>
         function controlLed(status) {
@@ -26,8 +28,14 @@
                 body: JSON.stringify({ status: status })
             })
             .then(response => response.json())
-            .then(data => console.log(data))
-            .catch(error => console.error("Error:", error));
+            .then(data => {
+                document.getElementById("status").innerText = "Estado del LED: " + status;
+                console.log("Respuesta:", data);
+            })
+            .catch(error => {
+                document.getElementById("status").innerText = "Error en la solicitud";
+                console.error("Error:", error);
+            });
         }
     </script>
 </body>
