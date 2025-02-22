@@ -11,7 +11,9 @@
         .on { background-color: #28a745; color: white; }
         .off { background-color: #dc3545; color: white; }
         #status { margin-top: 20px; font-size: 18px; color: #555; }
+        canvas { margin-top: 20px; background: white; border-radius: 10px; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <h1>Control del ESP32 - Grupo 4</h1>
@@ -19,6 +21,9 @@
     <button class="on" onclick="controlLed('ON')">Encender LED</button>
     <button class="off" onclick="controlLed('OFF')">Apagar LED</button>
     <p id="status">Estado del LED: Desconocido</p>
+
+    <h2>Historial de Cambios</h2>
+    <canvas id="ledHistoryChart" width="400" height="200"></canvas>
 
     <script>
         function controlLed(status) {
@@ -31,12 +36,54 @@
             .then(data => {
                 document.getElementById("status").innerText = "Estado del LED: " + status;
                 console.log("Respuesta:", data);
+                fetchLedHistory(); // Actualizar el gráfico después de un cambio
             })
             .catch(error => {
                 document.getElementById("status").innerText = "Error en la solicitud";
                 console.error("Error:", error);
             });
         }
+
+        function fetchLedHistory() {
+            fetch('https://b9525e27-c7bb-4a18-a265-73e1bc3eab42-00-3i6e87kyqnh89.worf.replit.dev/?history=true')
+                .then(response => response.json())
+                .then(data => {
+                    const timestamps = data.map(entry => entry.timestamp);
+                    const statuses = data.map(entry => entry.status === 'ON' ? 1 : 0);
+
+                    const ctx = document.getElementById('ledHistoryChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: timestamps,
+                            datasets: [{
+                                label: 'Estado del LED (1=Encendido, 0=Apagado)',
+                                data: statuses,
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                fill: false,
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        stepSize: 1,
+                                        callback: function(value) { return value === 1 ? 'ON' : 'OFF'; }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error("Error al obtener el historial:", error));
+        }
+
+        // Cargar el historial cuando la página se cargue
+        fetchLedHistory();
     </script>
 </body>
 </html>
+
