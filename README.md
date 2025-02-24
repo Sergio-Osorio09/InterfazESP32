@@ -1,11 +1,19 @@
-Consejos:
-\n1)Usar la api, en replit. Debido a que GitHub no soporta PHP en sus paginas web
+# Consejos y Recomendaciones
 
-\n2)La pagina no se esta adaptando a celular, activa el modo de escritorio para verlo como en una computadora
+## 1. Uso de la API en Replit
+Debido a que **GitHub Pages** no admite PHP, se recomienda utilizar la API alojada en **Replit**.
 
-\n3) Puedes hacer pruebas introducciendo datos con el siguientes comando
-curl -X POST -H "Content-Type: application/json" -d "{\"sensorData\": {\"sensor1\": 14, \"sensor2\": 24, \"sensor3\": 44, \"sensor4\": 64, \"sensor5\": 44}}" "Enlace de tu servidor en replit"
-Nota. Ten encuenta que el curl se usa en el cmd o simbolo del sistema.
+## 2. Visualización en Dispositivos Móviles
+La página actual **no se adapta** automáticamente a dispositivos móviles.  
+Para verla correctamente, activa el **modo de escritorio** en tu navegador.
 
+## 3. Pruebas de la API
+Puedes realizar pruebas enviando datos mediante el siguiente comando `curl`:
 
-Gracias por su atención !!!
+```bash
+curl -X POST -H "Content-Type: application/json" \
+-d '{"sensorData": {"sensor1": 14, "sensor2": 24, "sensor3": 44, "sensor4": 64, "sensor5": 44}}' \
+"Enlace_de_tu_servidor_en_replit"
+
+Nota: Asegúrate de ejecutar el comando curl en la línea de comandos (CMD, terminal o símbolo del sistema).
+
