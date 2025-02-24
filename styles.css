@@ -1,0 +1,157 @@
+/* Global reset y estilos base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background: linear-gradient(135deg, #f4f4f4, #eaeaea);
+  color: #333;
+  text-align: center;
+  line-height: 1.6;
+  padding: 20px;
+}
+
+header {
+  background-color: #333;
+  color: #fff;
+  padding: 30px 20px;
+  margin-bottom: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+header h1 {
+  font-size: 2em;
+  letter-spacing: 1px;
+}
+
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+section {
+  margin-bottom: 40px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+p {
+  margin-bottom: 20px;
+  font-size: 1em;
+}
+
+/* Botones */
+.btn {
+  padding: 15px 30px;
+  font-size: 1em;
+  margin: 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.on {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.off {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.btn-toggle {
+  background-color: #007bff;
+  color: #fff;
+}
+
+/* Estado del LED */
+#status {
+  font-size: 1.1em;
+  color: #555;
+  margin-top: 10px;
+}
+
+/* Tarjeta de datos del sensor */
+.sensor-card {
+  text-align: left;
+  margin: 0 auto 20px;
+  max-width: 400px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fafafa;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.sensor-card .sensor-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.sensor-card .sensor-row:last-child {
+  border-bottom: none;
+}
+
+.sensor-card .sensor-label {
+  font-weight: bold;
+  color: #333;
+}
+
+.sensor-card .sensor-value {
+  color: #007bff;
+}
+
+.sensor-card .sensor-timestamp {
+  font-size: 0.9em;
+  color: #777;
+  text-align: right;
+  margin-top: 10px;
+}
+
+.loading {
+  font-style: italic;
+  color: #777;
+}
+
+/* Controles de gráficos */
+#chartControls {
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+#chartContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Canvas */
+canvas {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
