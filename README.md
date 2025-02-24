@@ -12,7 +12,7 @@ Puedes realizar pruebas enviando datos mediante el siguiente comando `curl`:
 
 ```bash
 curl -X POST -H "Content-Type: application/json" -d "{\"sensorData\": {\"sensor1\": 24, \"sensor2\": 29, \"sensor3\": 46, \"sensor4\": 65, \"sensor5\": 65}}" "https://07d4156a-7ffe-48fa-a08b-84fab5048dad-00-xr9pxzhzg06z.janeway.replit.dev/"
-
+```
 
 Nota: Asegúrate de ejecutar el comando curl en la línea de comandos (CMD, terminal o símbolo del sistema).
 
