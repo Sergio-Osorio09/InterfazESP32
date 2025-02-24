@@ -1,3 +1,4 @@
+
 // URL de la API (ajusta la ruta según donde se encuentre alojado tu api.php)
 const apiUrl = "https://07d4156a-7ffe-48fa-a08b-84fab5048dad-00-xr9pxzhzg06z.janeway.replit.dev/";
 
@@ -30,15 +31,6 @@ let sensorChart;                // Instancia del gráfico en modo único
 let sensorCharts = {};          // Instancias de gráficos en modo "todos"
 let sensorDataHistory = [];     // Historial de datos de sensores
 
-// Función para formatear la fecha de forma más corta
-function formatTimestamp(timestamp) {
-  const date = new Date(timestamp);
-  if (isNaN(date)) return timestamp; // Si no es una fecha válida, retorna el original
-  // Ejemplo: "21/05/23 14:30"
-  return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) + ' ' +
-         date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-}
-
 // Función para controlar el LED mediante POST
 function controlLed(status) {
   fetch(apiUrl, {
@@ -59,14 +51,14 @@ function controlLed(status) {
 
 // Actualiza el sensor card con datos formateados
 function updateSensorCard(ultimaLectura) {
-  const sensorHTML = `
+  const sensorHTML = 
     <div class="sensor-row"><span class="sensor-label">Sensor1:</span> <span class="sensor-value">${ultimaLectura.sensor1}</span></div>
     <div class="sensor-row"><span class="sensor-label">Sensor2:</span> <span class="sensor-value">${ultimaLectura.sensor2}</span></div>
     <div class="sensor-row"><span class="sensor-label">Sensor3:</span> <span class="sensor-value">${ultimaLectura.sensor3}</span></div>
     <div class="sensor-row"><span class="sensor-label">Sensor4:</span> <span class="sensor-value">${ultimaLectura.sensor4}</span></div>
     <div class="sensor-row"><span class="sensor-label">Sensor5:</span> <span class="sensor-value">${ultimaLectura.sensor5}</span></div>
-    <div class="sensor-timestamp"><em>Última actualización: ${formatTimestamp(ultimaLectura.timestamp)}</em></div>
-  `;
+    <div class="sensor-timestamp"><em>Última actualización: ${ultimaLectura.timestamp}</em></div>
+  ;
   document.getElementById("sensorStatus").innerHTML = sensorHTML;
 }
 
@@ -115,17 +107,6 @@ function updateSensorChart() {
           }
         },
         scales: {
-          x: {
-            ticks: {
-              autoSkip: true,
-              maxTicksLimit: 10,
-              callback: function(value, index, values) {
-                const label = this.getLabelForValue(value);
-                const date = new Date(label);
-                return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-              }
-            }
-          },
           y: {
             beginAtZero: true,
             title: {
@@ -189,17 +170,6 @@ function updateAllSensorCharts() {
             }
           },
           scales: {
-            x: {
-              ticks: {
-                autoSkip: true,
-                maxTicksLimit: 10,
-                callback: function(value, index, values) {
-                  const label = this.getLabelForValue(value);
-                  const date = new Date(label);
-                  return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-                }
-              }
-            },
             y: {
               beginAtZero: true,
               title: {
@@ -217,13 +187,13 @@ function updateAllSensorCharts() {
 // Función auxiliar para obtener colores según el sensor
 function getSensorColor(sensorKey, alpha = 1) {
   const colors = {
-    sensor1: `rgba(255, 99, 132, ${alpha})`,
-    sensor2: `rgba(54, 162, 235, ${alpha})`,
-    sensor3: `rgba(255, 206, 86, ${alpha})`,
-    sensor4: `rgba(75, 192, 192, ${alpha})`,
-    sensor5: `rgba(153, 102, 255, ${alpha})`
+    sensor1: rgba(255, 99, 132, ${alpha}),
+    sensor2: rgba(54, 162, 235, ${alpha}),
+    sensor3: rgba(255, 206, 86, ${alpha}),
+    sensor4: rgba(75, 192, 192, ${alpha}),
+    sensor5: rgba(153, 102, 255, ${alpha})
   };
-  return colors[sensorKey] || `rgba(100, 100, 100, ${alpha})`;
+  return colors[sensorKey] || rgba(100, 100, 100, ${alpha});
 }
 
 // Alternar entre modo "único" y "todos"
