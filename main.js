@@ -30,6 +30,17 @@ let sensorChart;                // Instancia del gráfico en modo único
 let sensorCharts = {};          // Instancias de gráficos en modo "todos"
 let sensorDataHistory = [];     // Historial de datos de sensores
 
+// Función para formatear la fecha de forma más corta (dd/mm/aa hh:mm)
+function formatTimestamp(timestamp) {
+  const date = new Date(timestamp);
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear().toString().slice(-2);
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+}
+
 // Función para controlar el LED mediante POST
 function controlLed(status) {
   fetch(apiUrl, {
@@ -56,7 +67,7 @@ function updateSensorCard(ultimaLectura) {
     <div class="sensor-row"><span class="sensor-label">Sensor3:</span> <span class="sensor-value">${ultimaLectura.sensor3}</span></div>
     <div class="sensor-row"><span class="sensor-label">Sensor4:</span> <span class="sensor-value">${ultimaLectura.sensor4}</span></div>
     <div class="sensor-row"><span class="sensor-label">Sensor5:</span> <span class="sensor-value">${ultimaLectura.sensor5}</span></div>
-    <div class="sensor-timestamp"><em>Última actualización: ${ultimaLectura.timestamp}</em></div>
+    <div class="sensor-timestamp"><em>Última actualización: ${formatTimestamp(ultimaLectura.timestamp)}</em></div>
   `;
   document.getElementById("sensorStatus").innerHTML = sensorHTML;
 }
@@ -67,14 +78,14 @@ function updateSensorChart() {
   const sensorKey = sensorSelect.value; // "sensor1", "sensor2", etc.
   const config = sensorTitles[sensorKey];
   
-  const timestamps = sensorDataHistory.map(entry => entry.timestamp);
+  // Formateamos las fechas para mostrar etiquetas más cortas
+  const timestamps = sensorDataHistory.map(entry => formatTimestamp(entry.timestamp));
   const sensorValues = sensorDataHistory.map(entry => entry[sensorKey]);
   
   if (sensorChart) {
     sensorChart.data.labels = timestamps;
     sensorChart.data.datasets[0].data = sensorValues;
     sensorChart.data.datasets[0].label = config.parameter;
-    // Actualiza título y subtítulo
     sensorChart.options.plugins.title.text = config.title;
     sensorChart.options.plugins.subtitle.text = config.parameter;
     sensorChart.options.scales.y.title.text = config.parameter;
@@ -106,6 +117,12 @@ function updateSensorChart() {
           }
         },
         scales: {
+          x: {
+            ticks: {
+              autoSkip: true,
+              maxTicksLimit: 10  // Muestra un máximo de 10 etiquetas en el eje X
+            }
+          },
           y: {
             beginAtZero: true,
             title: {
@@ -122,7 +139,7 @@ function updateSensorChart() {
 // Actualizar gráficos en modo "todos"
 function updateAllSensorCharts() {
   const sensorKeys = ['sensor1', 'sensor2', 'sensor3', 'sensor4', 'sensor5'];
-  const timestamps = sensorDataHistory.map(entry => entry.timestamp);
+  const timestamps = sensorDataHistory.map(entry => formatTimestamp(entry.timestamp));
   
   sensorKeys.forEach(sensorKey => {
     const config = sensorTitles[sensorKey];
@@ -169,6 +186,12 @@ function updateAllSensorCharts() {
             }
           },
           scales: {
+            x: {
+              ticks: {
+                autoSkip: true,
+                maxTicksLimit: 10
+              }
+            },
             y: {
               beginAtZero: true,
               title: {
