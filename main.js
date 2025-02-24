@@ -30,30 +30,13 @@ let sensorChart;                // Instancia del gráfico en modo único
 let sensorCharts = {};          // Instancias de gráficos en modo "todos"
 let sensorDataHistory = [];     // Historial de datos de sensores
 
-// Opciones comunes para gráficos responsivos
-const chartResponsiveOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    title: { display: true },
-    subtitle: { display: true }
-  },
-  scales: {
-    y: {
-      beginAtZero: true,
-      title: { display: true }
-    }
-  }
-};
-
-/* Función para procesar los timestamps:
-   - Acorta el formato a "MM-DD HH:MM" (tomando desde el carácter 5 hasta el 16).
-   - Si hay más de 10 datos, muestra solo cada tercer label y deja en blanco los intermedios.
-*/
-function processTimestamps(timestamps) {
-  const short = timestamps.map(ts => ts.substring(5, 16)); // Ej.: "02-24 16:17"
-  if (short.length <= 10) return short;
-  return short.map((label, index) => (index % 3 === 0 ? label : ''));
+// Función para formatear la fecha de forma más corta
+function formatTimestamp(timestamp) {
+  const date = new Date(timestamp);
+  if (isNaN(date)) return timestamp; // Si no es una fecha válida, retorna el original
+  // Ejemplo: "21/05/23 14:30"
+  return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' }) + ' ' +
+         date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 }
 
 // Función para controlar el LED mediante POST
@@ -82,7 +65,7 @@ function updateSensorCard(ultimaLectura) {
     <div class="sensor-row"><span class="sensor-label">Sensor3:</span> <span class="sensor-value">${ultimaLectura.sensor3}</span></div>
     <div class="sensor-row"><span class="sensor-label">Sensor4:</span> <span class="sensor-value">${ultimaLectura.sensor4}</span></div>
     <div class="sensor-row"><span class="sensor-label">Sensor5:</span> <span class="sensor-value">${ultimaLectura.sensor5}</span></div>
-    <div class="sensor-timestamp"><em>Última actualización: ${ultimaLectura.timestamp}</em></div>
+    <div class="sensor-timestamp"><em>Última actualización: ${formatTimestamp(ultimaLectura.timestamp)}</em></div>
   `;
   document.getElementById("sensorStatus").innerHTML = sensorHTML;
 }
@@ -94,13 +77,13 @@ function updateSensorChart() {
   const config = sensorTitles[sensorKey];
   
   const timestamps = sensorDataHistory.map(entry => entry.timestamp);
-  const processedTimestamps = processTimestamps(timestamps);
   const sensorValues = sensorDataHistory.map(entry => entry[sensorKey]);
   
   if (sensorChart) {
-    sensorChart.data.labels = processedTimestamps;
+    sensorChart.data.labels = timestamps;
     sensorChart.data.datasets[0].data = sensorValues;
     sensorChart.data.datasets[0].label = config.parameter;
+    // Actualiza título y subtítulo
     sensorChart.options.plugins.title.text = config.title;
     sensorChart.options.plugins.subtitle.text = config.parameter;
     sensorChart.options.scales.y.title.text = config.parameter;
@@ -110,7 +93,7 @@ function updateSensorChart() {
     sensorChart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: processedTimestamps,
+        labels: timestamps,
         datasets: [{
           label: config.parameter,
           data: sensorValues,
@@ -121,16 +104,34 @@ function updateSensorChart() {
         }]
       },
       options: {
-        ...chartResponsiveOptions,
         plugins: {
-          ...chartResponsiveOptions.plugins,
-          title: { display: true, text: config.title },
-          subtitle: { display: true, text: config.parameter }
+          title: {
+            display: true,
+            text: config.title
+          },
+          subtitle: {
+            display: true,
+            text: config.parameter
+          }
         },
         scales: {
+          x: {
+            ticks: {
+              autoSkip: true,
+              maxTicksLimit: 10,
+              callback: function(value, index, values) {
+                const label = this.getLabelForValue(value);
+                const date = new Date(label);
+                return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+              }
+            }
+          },
           y: {
             beginAtZero: true,
-            title: { display: true, text: config.parameter }
+            title: {
+              display: true,
+              text: config.parameter
+            }
           }
         }
       }
@@ -142,7 +143,6 @@ function updateSensorChart() {
 function updateAllSensorCharts() {
   const sensorKeys = ['sensor1', 'sensor2', 'sensor3', 'sensor4', 'sensor5'];
   const timestamps = sensorDataHistory.map(entry => entry.timestamp);
-  const processedTimestamps = processTimestamps(timestamps);
   
   sensorKeys.forEach(sensorKey => {
     const config = sensorTitles[sensorKey];
@@ -150,7 +150,7 @@ function updateAllSensorCharts() {
     const canvasId = "sensorChart_" + sensorKey;
     
     if (sensorCharts[sensorKey]) {
-      sensorCharts[sensorKey].data.labels = processedTimestamps;
+      sensorCharts[sensorKey].data.labels = timestamps;
       sensorCharts[sensorKey].data.datasets[0].data = sensorValues;
       sensorCharts[sensorKey].data.datasets[0].label = config.parameter;
       sensorCharts[sensorKey].options.plugins.title.text = config.title;
@@ -160,13 +160,14 @@ function updateAllSensorCharts() {
     } else {
       const canvas = document.createElement("canvas");
       canvas.id = canvasId;
-      // Se omiten atributos fijos; el CSS (y Chart.js responsive) controlarán el tamaño.
+      canvas.width = 300;
+      canvas.height = 150;
       document.getElementById("chartContainer").appendChild(canvas);
       const ctx = canvas.getContext('2d');
       sensorCharts[sensorKey] = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: processedTimestamps,
+          labels: timestamps,
           datasets: [{
             label: config.parameter,
             data: sensorValues,
@@ -177,16 +178,34 @@ function updateAllSensorCharts() {
           }]
         },
         options: {
-          ...chartResponsiveOptions,
           plugins: {
-            ...chartResponsiveOptions.plugins,
-            title: { display: true, text: config.title },
-            subtitle: { display: true, text: config.parameter }
+            title: {
+              display: true,
+              text: config.title
+            },
+            subtitle: {
+              display: true,
+              text: config.parameter
+            }
           },
           scales: {
+            x: {
+              ticks: {
+                autoSkip: true,
+                maxTicksLimit: 10,
+                callback: function(value, index, values) {
+                  const label = this.getLabelForValue(value);
+                  const date = new Date(label);
+                  return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                }
+              }
+            },
             y: {
               beginAtZero: true,
-              title: { display: true, text: config.parameter }
+              title: {
+                display: true,
+                text: config.parameter
+              }
             }
           }
         }
@@ -224,11 +243,11 @@ function toggleChartMode() {
   } else {
     currentChartMode = 'single';
     toggleBtn.textContent = "Ver todos los gráficos";
-    chartContainer.innerHTML = '<canvas id="sensorChart"></canvas>';
+    chartContainer.innerHTML = '<canvas id="sensorChart" width="300" height="150"></canvas>';
     sensorChart = null;
     sensorCharts = {};
     updateSensorChart();
-    singleControls.style.display = "flex";
+    singleControls.style.display = "inline-block";
   }
 }
 
