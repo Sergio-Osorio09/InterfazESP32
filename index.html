@@ -36,6 +36,14 @@
             <option value="sensor4">Sensor4</option>
             <option value="sensor5">Sensor5</option>
           </select>
+          <label for="chartTypeSelect">Tipo de gráfico:</label>
+          <select id="chartTypeSelect" onchange="updateSensorChart()">
+            <option value="line">Línea</option>
+            <option value="bar">Barras</option>
+            <option value="radar">Radar</option>
+            <option value="pie">Pie</option>
+            <option value="doughnut">Dona</option>
+          </select>
         </div>
         <button id="toggleChartMode" class="btn btn-toggle" onclick="toggleChartMode()">Ver todos los gráficos</button>
       </div>
