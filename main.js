@@ -72,37 +72,88 @@ function updateSensorCard(ultimaLectura) {
   document.getElementById("sensorStatus").innerHTML = sensorHTML;
 }
 
-// Actualizar gráfico en modo único (según el sensor seleccionado)
+// Actualiza el gráfico en modo único o de acuerdo al tipo seleccionado
 function updateSensorChart() {
   const sensorSelect = document.getElementById("sensorSelect");
-  const sensorKey = sensorSelect.value; // "sensor1", "sensor2", etc.
-  const config = sensorTitles[sensorKey];
-  
-  // Formateamos las fechas para mostrar etiquetas más cortas
-  const timestamps = sensorDataHistory.map(entry => formatTimestamp(entry.timestamp));
-  const sensorValues = sensorDataHistory.map(entry => entry[sensorKey]);
-  
-  if (sensorChart) {
-    sensorChart.data.labels = timestamps;
-    sensorChart.data.datasets[0].data = sensorValues;
-    sensorChart.data.datasets[0].label = config.parameter;
-    sensorChart.options.plugins.title.text = config.title;
-    sensorChart.options.plugins.subtitle.text = config.parameter;
-    sensorChart.options.scales.y.title.text = config.parameter;
-    sensorChart.update();
-  } else {
+  const chartTypeSelect = document.getElementById("chartTypeSelect");
+  let chartType = chartTypeSelect.value; // Puede ser "line", "bar", "radar", "pie" o "doughnut"
+
+  // Si se selecciona "pie" o "doughnut", se graficarán los valores del último registro para todos los sensores
+  if (chartType === 'pie' || chartType === 'doughnut') {
+    if (sensorDataHistory.length === 0) return;
+    const ultimaLectura = sensorDataHistory[sensorDataHistory.length - 1];
+    const labels = Object.keys(sensorTitles);
+    const dataValues = labels.map(key => ultimaLectura[key]);
+
+    if (sensorChart) {
+      if (sensorChart.config.type !== chartType) {
+        sensorChart.destroy();
+        sensorChart = null;
+      } else {
+        sensorChart.data.labels = labels;
+        sensorChart.data.datasets[0].data = dataValues;
+        sensorChart.options.plugins.title.text = "Distribución de valores de sensores";
+        sensorChart.update();
+        return;
+      }
+    }
     const ctx = document.getElementById('sensorChart').getContext('2d');
     sensorChart = new Chart(ctx, {
-      type: 'line',
+      type: chartType,
+      data: {
+        labels: labels,
+        datasets: [{
+          data: dataValues,
+          backgroundColor: labels.map(key => getSensorColor(key, 0.6)),
+          borderColor: labels.map(key => getSensorColor(key, 1)),
+          borderWidth: 1
+        }]
+      },
+      options: {
+        plugins: {
+          title: {
+            display: true,
+            text: "Distribución de valores de sensores"
+          }
+        }
+      }
+    });
+  } else {
+    // Para gráficos de línea, barras o radar se usa la serie temporal del sensor seleccionado
+    const sensorKey = sensorSelect.value;
+    const config = sensorTitles[sensorKey];
+    const timestamps = sensorDataHistory.map(entry => formatTimestamp(entry.timestamp));
+    const sensorValues = sensorDataHistory.map(entry => entry[sensorKey]);
+
+    if (sensorChart) {
+      if (sensorChart.config.type !== chartType) {
+        sensorChart.destroy();
+        sensorChart = null;
+      } else {
+        sensorChart.data.labels = timestamps;
+        sensorChart.data.datasets[0].data = sensorValues;
+        sensorChart.data.datasets[0].label = config.parameter;
+        sensorChart.options.plugins.title.text = config.title;
+        sensorChart.options.plugins.subtitle.text = config.parameter;
+        if (sensorChart.options.scales && sensorChart.options.scales.y) {
+          sensorChart.options.scales.y.title.text = config.parameter;
+        }
+        sensorChart.update();
+        return;
+      }
+    }
+    const ctx = document.getElementById('sensorChart').getContext('2d');
+    sensorChart = new Chart(ctx, {
+      type: chartType,
       data: {
         labels: timestamps,
         datasets: [{
           label: config.parameter,
           data: sensorValues,
           borderColor: 'rgba(54, 162, 235, 1)',
-          backgroundColor: 'rgba(54, 162, 235, 0.2)',
-          fill: false,
-          tension: 0.1
+          backgroundColor: chartType === 'line' ? 'rgba(54, 162, 235, 0.2)' : 'rgba(54, 162, 235, 0.6)',
+          fill: chartType === 'line' ? false : true,
+          tension: chartType === 'line' ? 0.1 : 0
         }]
       },
       options: {
@@ -116,11 +167,11 @@ function updateSensorChart() {
             text: config.parameter
           }
         },
-        scales: {
+        scales: (chartType === 'bar' || chartType === 'line' || chartType === 'radar') ? {
           x: {
             ticks: {
               autoSkip: true,
-              maxTicksLimit: 10  // Muestra un máximo de 10 etiquetas en el eje X
+              maxTicksLimit: 10
             }
           },
           y: {
@@ -130,7 +181,7 @@ function updateSensorChart() {
               text: config.parameter
             }
           }
-        }
+        } : {}
       }
     });
   }
@@ -139,6 +190,15 @@ function updateSensorChart() {
 // Actualizar gráficos en modo "todos"
 function updateAllSensorCharts() {
   const sensorKeys = ['sensor1', 'sensor2', 'sensor3', 'sensor4', 'sensor5'];
+  const chartTypeSelect = document.getElementById("chartTypeSelect");
+  let chartType = chartTypeSelect.value;
+  
+  // Para modo "todos" es preferible utilizar gráficos que muestren series temporales.
+  if (chartType === 'pie' || chartType === 'doughnut') {
+    alert("El modo 'todos' no es compatible con gráficos de tipo " + chartType + ". Se usará gráfico de línea.");
+    chartType = 'line';
+  }
+  
   const timestamps = sensorDataHistory.map(entry => formatTimestamp(entry.timestamp));
   
   sensorKeys.forEach(sensorKey => {
@@ -147,62 +207,71 @@ function updateAllSensorCharts() {
     const canvasId = "sensorChart_" + sensorKey;
     
     if (sensorCharts[sensorKey]) {
-      sensorCharts[sensorKey].data.labels = timestamps;
-      sensorCharts[sensorKey].data.datasets[0].data = sensorValues;
-      sensorCharts[sensorKey].data.datasets[0].label = config.parameter;
-      sensorCharts[sensorKey].options.plugins.title.text = config.title;
-      sensorCharts[sensorKey].options.plugins.subtitle.text = config.parameter;
-      sensorCharts[sensorKey].options.scales.y.title.text = config.parameter;
-      sensorCharts[sensorKey].update();
-    } else {
-      const canvas = document.createElement("canvas");
+      if (sensorCharts[sensorKey].config.type !== chartType) {
+        sensorCharts[sensorKey].destroy();
+        sensorCharts[sensorKey] = null;
+      } else {
+        sensorCharts[sensorKey].data.labels = timestamps;
+        sensorCharts[sensorKey].data.datasets[0].data = sensorValues;
+        sensorCharts[sensorKey].data.datasets[0].label = config.parameter;
+        sensorCharts[sensorKey].options.plugins.title.text = config.title;
+        sensorCharts[sensorKey].options.plugins.subtitle.text = config.parameter;
+        sensorCharts[sensorKey].options.scales.y.title.text = config.parameter;
+        sensorCharts[sensorKey].update();
+        return;
+      }
+    }
+    
+    let canvas = document.getElementById(canvasId);
+    if (!canvas) {
+      canvas = document.createElement("canvas");
       canvas.id = canvasId;
       canvas.width = 300;
       canvas.height = 150;
       document.getElementById("chartContainer").appendChild(canvas);
-      const ctx = canvas.getContext('2d');
-      sensorCharts[sensorKey] = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: timestamps,
-          datasets: [{
-            label: config.parameter,
-            data: sensorValues,
-            borderColor: getSensorColor(sensorKey),
-            backgroundColor: getSensorColor(sensorKey, 0.2),
-            fill: false,
-            tension: 0.1
-          }]
+    }
+    const ctx = canvas.getContext('2d');
+    sensorCharts[sensorKey] = new Chart(ctx, {
+      type: chartType,
+      data: {
+        labels: timestamps,
+        datasets: [{
+          label: config.parameter,
+          data: sensorValues,
+          borderColor: getSensorColor(sensorKey),
+          backgroundColor: getSensorColor(sensorKey, 0.2),
+          fill: chartType === 'line' ? false : true,
+          tension: chartType === 'line' ? 0.1 : 0
+        }]
+      },
+      options: {
+        plugins: {
+          title: {
+            display: true,
+            text: config.title
+          },
+          subtitle: {
+            display: true,
+            text: config.parameter
+          }
         },
-        options: {
-          plugins: {
+        scales: (chartType === 'bar' || chartType === 'line' || chartType === 'radar') ? {
+          x: {
+            ticks: {
+              autoSkip: true,
+              maxTicksLimit: 10
+            }
+          },
+          y: {
+            beginAtZero: true,
             title: {
-              display: true,
-              text: config.title
-            },
-            subtitle: {
               display: true,
               text: config.parameter
             }
-          },
-          scales: {
-            x: {
-              ticks: {
-                autoSkip: true,
-                maxTicksLimit: 10
-              }
-            },
-            y: {
-              beginAtZero: true,
-              title: {
-                display: true,
-                text: config.parameter
-              }
-            }
           }
-        }
-      });
-    }
+        } : {}
+      }
+    });
   });
 }
 
