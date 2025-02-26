@@ -76,7 +76,16 @@ function updateSensorCard(ultimaLectura) {
 function updateSensorChart() {
   const sensorSelect = document.getElementById("sensorSelect");
   const chartTypeSelect = document.getElementById("chartTypeSelect");
-  let chartType = chartTypeSelect.value; // Puede ser "line", "bar", "radar", "pie" o "doughnut"
+  let chartType = chartTypeSelect.value; // "line", "bar", "radar", "pie" o "doughnut"
+
+  // Ocultar el botón de "Ver todos los gráficos" si el tipo es "pie" o "doughnut"
+  const toggleBtn = document.getElementById("toggleChartMode");
+  if (chartType === 'pie' || chartType === 'doughnut') {
+    toggleBtn.style.display = "none";
+    currentChartMode = 'single'; // Forzamos el modo único
+  } else {
+    toggleBtn.style.display = "inline-block";
+  }
 
   // Si se selecciona "pie" o "doughnut", se graficarán los valores del último registro para todos los sensores
   if (chartType === 'pie' || chartType === 'doughnut') {
