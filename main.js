@@ -1,5 +1,5 @@
 // URL de la API (ajusta la ruta según donde se encuentre alojado tu api.php)
-const apiUrl = "https://4637e376-ab5c-40e2-8397-4bdad0b80c8a-00-19vud6teq5ys6.janeway.replit.dev/";
+const apiUrl = "https://b9525e27-c7bb-4a18-a265-73e1bc3eab42-00-3i6e87kyqnh89.worf.replit.dev/";
 
 // Configuración de títulos y parámetros para cada sensor
 const sensorTitles = {
