@@ -1,0 +1,152 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+#include <DHT.h>
+
+const char* ssid = "JADA";
+const char* password = "10293579";
+const char* serverUrl = "https://b9525e27-c7bb-4a18-a265-73e1bc3eab42-00-3i6e87kyqnh89.worf.replit.dev/";
+
+#define LED_PIN 2
+#define DHTPIN 15    // Pin del sensor DHT11
+#define DHTTYPE DHT11   // Tipo de sensor DHT
+
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup() {
+  Serial.begin(11520);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW); // Asegura que el LED inicia apagado
+
+  WiFi.begin(ssid, password);
+  Serial.println("Conectando a WiFi");
+
+  uint8_t h = 15;
+  while (WiFi.status() != WL_CONNECTED && h > 0) {
+    h--;
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConectado a WiFi");
+  
+  dht.begin(); // Inicializa el sensor DHT11
+  delay(2000); // Espera para estabilizar el sensor
+
+  // Prueba inicial del sensor
+  float tempTest = dht.readTemperature();
+  float humTest = dht.readHumidity();
+  Serial.print(tempTest);
+  Serial.print(" ");
+  Serial.println(humTest);
+  if (isnan(tempTest) || isnan(humTest)) {
+    Serial.println("Error al leer el sensor DHT11 en la prueba inicial");
+  } else {
+    Serial.print("Temperatura inicial: ");
+    Serial.print(tempTest);
+    Serial.print(" °C  |  Humedad inicial: ");
+    Serial.print(humTest);
+    Serial.println(" %");
+  }
+}
+
+// Función para enviar datos de sensores vía POST
+void enviarDatosSensores() {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(serverUrl);
+    http.addHeader("Content-Type", "application/json");
+    
+    // Lectura real del sensor DHT11
+    float temperature = dht.readTemperature();
+    float humidity = dht.readHumidity();
+    
+    // Se crea el objeto JSON con los datos
+    StaticJsonDocument<256> doc;
+    JsonObject sensorData = doc.createNestedObject("sensorData");
+    
+    bool tempError = isnan(temperature);
+    bool humError = isnan(humidity);
+    
+    if (tempError && humError) {
+      Serial.println("Error al leer ambos valores del DHT11");
+      sensorData["sensor1"] = "ERROR_BOTH";
+      sensorData["sensor2"] = "ERROR_BOTH";
+    } else {
+      if (tempError) {
+        Serial.println("Error al leer la temperatura del DHT11");
+        sensorData["sensor1"] = "ERROR_TEMP";
+      } else {
+        sensorData["sensor1"] = temperature;
+      }
+      
+      if (humError) {
+        Serial.println("Error al leer la humedad del DHT11");
+        sensorData["sensor2"] = "ERROR_HUM";
+      } else {
+        sensorData["sensor2"] = humidity;
+      }
+    }
+    
+    // Los otros sensores se mantienen con datos de prueba
+    sensorData["sensor3"] = 300;  // dato de prueba
+    sensorData["sensor4"] = 400;  // dato de prueba
+    sensorData["sensor5"] = 500;  // dato de prueba
+    
+    String jsonPayload;
+    serializeJson(doc, jsonPayload);
+    
+    Serial.print("Enviando payload: ");
+    Serial.println(jsonPayload);
+
+    int httpResponseCode = http.POST(jsonPayload);
+    if (httpResponseCode == 200) {
+      String response = http.getString();
+      Serial.println("POST OK: " + response);
+    } else {
+      Serial.print("Error en POST: ");
+      Serial.println(httpResponseCode);
+    }
+    http.end();
+  } else {
+    Serial.println("WiFi desconectado, no se pudo enviar datos de sensores");
+  }
+}
+
+void loop() {
+  if (WiFi.status() == WL_CONNECTED) {
+    // Enviar datos de sensores (incluye lectura real del DHT11 con control de errores)
+    enviarDatosSensores();
+
+    // Realizar solicitud GET para obtener el estado del LED
+    HTTPClient http;
+    http.begin(serverUrl);
+    http.setConnectTimeout(5000); // Tiempo de espera de conexión
+
+    int httpResponseCode = http.GET();
+    if (httpResponseCode == 200) {
+      String response = http.getString();
+      Serial.println("Respuesta del servidor (GET): " + response);
+
+      StaticJsonDocument<200> doc;
+      DeserializationError error = deserializeJson(doc, response);
+      if (!error) {
+        const char* status = doc["status"];
+        if (strcmp(status, "ON") == 0) {
+          digitalWrite(LED_PIN, HIGH);
+        } else {
+          digitalWrite(LED_PIN, LOW);
+        }
+      } else {
+        Serial.println("Error al parsear JSON en GET");
+      }
+    } else {
+      Serial.print("Error en la petición GET: ");
+      Serial.println(httpResponseCode);
+    }
+    http.end();
+  } else {
+    Serial.println("WiFi desconectado, reconectando...");
+    WiFi.begin(ssid, password);
+  }
+  delay(1000); // Iterar cada 3 segundos
+}
