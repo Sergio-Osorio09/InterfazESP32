@@ -1,26 +1,26 @@
 // URL de la API (ajusta la ruta según donde se encuentre alojado tu api.php)
 const apiUrl = "https://b9525e27-c7bb-4a18-a265-73e1bc3eab42-00-3i6e87kyqnh89.worf.replit.dev/";
 
-// Configuración de títulos y parámetros para cada sensor
+// Configuración de títulos y parámetros para cada sensor (nombres cortos)
 const sensorTitles = {
   sensor1: {
-    title: "Sensor de temperatura del modelo de armado de mesa",
+    title: "Sensor de temperatura",
     parameter: "Temperatura (°C)"
   },
   sensor2: {
-    title: "Sensor de humedad del modelo de armado de mesa",
+    title: "Sensor de humedad",
     parameter: "Humedad (%)"
   },
   sensor3: {
-    title: "Sensor de distancia (HC-SR04) del modelo de armado de mesa",
+    title: "Sensor de distancia",
     parameter: "Distancia (cm)"
   },
   sensor4: {
-    title: "Sensor de vibración del modelo de armado de mesa",
+    title: "Sensor de vibración",
     parameter: "Vibración (m/s²)"
   },
   sensor5: {
-    title: "Sensor de corriente del modelo de armado de mesa",
+    title: "Sensor de corriente",
     parameter: "Corriente (A)"
   }
 };
