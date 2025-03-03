@@ -81,6 +81,17 @@ p {
   color: #fff;
 }
 
+/* Estilo específico para el botón de verificación */
+.btn.verificar {
+  background-color: #007bff;
+  color: #fff;
+  box-shadow: 0 4px 6px rgba(0,123,255,0.3);
+}
+
+.btn.verificar:hover {
+  background-color: #0056b3;
+}
+
 /* Estado del LED */
 #status {
   font-size: 1.1em;
@@ -154,4 +165,3 @@ canvas {
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-
