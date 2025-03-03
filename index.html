@@ -13,11 +13,10 @@
   </header>
   <main>
     <section id="control-led">
-      <h2>Control del LED</h2>
-      <p>Controla el LED del ESP32:</p>
-      <button class="btn on" onclick="controlLed('ON')">Encender LED</button>
-      <button class="btn off" onclick="controlLed('OFF')">Apagar LED</button>
-      <p id="status">Estado del LED: Desconocido</p>
+      <h2>Verificar Conexión del ESP32</h2>
+      <p>Verifique la conexión con el ESP32 para confirmar la correcta comunicación del dispositivo.</p>
+      <button class="btn verificar" onclick="comprobarConexion()">Comprobar conexión con el ESP32</button>
+      <p id="status">Estado: Conexión no verificada</p>
     </section>
 
     <section id="sensor-data">
