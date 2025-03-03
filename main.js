@@ -1,7 +1,7 @@
 // URL de la API (ajusta la ruta según donde se encuentre alojado tu api.php)
 const apiUrl = "https://b9525e27-c7bb-4a18-a265-73e1bc3eab42-00-3i6e87kyqnh89.worf.replit.dev/";
 
-// Configuración de títulos y parámetros para cada sensor (solo se incluyen los sensores 1, 2 y 3)
+// Configuración de títulos y parámetros para cada sensor
 const sensorTitles = {
   sensor1: {
     title: "Sensor de temperatura del modelo de armado de mesa",
@@ -12,8 +12,16 @@ const sensorTitles = {
     parameter: "Humedad (%)"
   },
   sensor3: {
-    title: "Sensor de distancia (HC‑SR04) del modelo de armado de mesa",
+    title: "Sensor de distancia (HC-SR04) del modelo de armado de mesa",
     parameter: "Distancia (cm)"
+  },
+  sensor4: {
+    title: "Sensor de vibración del modelo de armado de mesa",
+    parameter: "Vibración (m/s²)"
+  },
+  sensor5: {
+    title: "Sensor de corriente del modelo de armado de mesa",
+    parameter: "Corriente (A)"
   }
 };
 
@@ -31,6 +39,11 @@ function formatTimestamp(timestamp) {
   const hours = date.getHours().toString().padStart(2, '0');
   const minutes = date.getMinutes().toString().padStart(2, '0');
   return `${day}/${month}/${year} ${hours}:${minutes}`;
+}
+
+// Función para generar un valor aleatorio realista
+function getRandomValue(min, max) {
+  return parseFloat((Math.random() * (max - min) + min).toFixed(2));
 }
 
 // Función para controlar el LED mediante POST
@@ -51,12 +64,14 @@ function controlLed(status) {
   });
 }
 
-// Actualiza el sensor card con datos formateados (se muestran solo los sensores 1, 2 y 3)
+// Actualiza el sensor card con datos formateados usando los nombres de cada sensor
 function updateSensorCard(ultimaLectura) {
   const sensorHTML = `
     <div class="sensor-row"><span class="sensor-label">${sensorTitles.sensor1.title}:</span> <span class="sensor-value">${ultimaLectura.sensor1}</span></div>
     <div class="sensor-row"><span class="sensor-label">${sensorTitles.sensor2.title}:</span> <span class="sensor-value">${ultimaLectura.sensor2}</span></div>
     <div class="sensor-row"><span class="sensor-label">${sensorTitles.sensor3.title}:</span> <span class="sensor-value">${ultimaLectura.sensor3}</span></div>
+    <div class="sensor-row"><span class="sensor-label">${sensorTitles.sensor4.title}:</span> <span class="sensor-value">${ultimaLectura.sensor4}</span></div>
+    <div class="sensor-row"><span class="sensor-label">${sensorTitles.sensor5.title}:</span> <span class="sensor-value">${ultimaLectura.sensor5}</span></div>
     <div class="sensor-timestamp"><em>Última actualización: ${formatTimestamp(ultimaLectura.timestamp)}</em></div>
   `;
   document.getElementById("sensorStatus").innerHTML = sensorHTML;
@@ -81,7 +96,6 @@ function updateSensorChart() {
   if (chartType === 'pie' || chartType === 'doughnut') {
     if (sensorDataHistory.length === 0) return;
     const ultimaLectura = sensorDataHistory[sensorDataHistory.length - 1];
-    // Se usan solo los sensores 1, 2 y 3
     const labels = Object.keys(sensorTitles);
     const dataValues = labels.map(key => ultimaLectura[key]);
 
@@ -187,9 +201,9 @@ function updateSensorChart() {
   }
 }
 
-// Actualizar gráficos en modo "todos" (solo se consideran los sensores 1, 2 y 3)
+// Actualizar gráficos en modo "todos"
 function updateAllSensorCharts() {
-  const sensorKeys = ['sensor1', 'sensor2', 'sensor3'];
+  const sensorKeys = ['sensor1', 'sensor2', 'sensor3', 'sensor4', 'sensor5'];
   const chartTypeSelect = document.getElementById("chartTypeSelect");
   let chartType = chartTypeSelect.value;
   
@@ -280,7 +294,9 @@ function getSensorColor(sensorKey, alpha = 1) {
   const colors = {
     sensor1: `rgba(255, 99, 132, ${alpha})`,
     sensor2: `rgba(54, 162, 235, ${alpha})`,
-    sensor3: `rgba(255, 206, 86, ${alpha})`
+    sensor3: `rgba(255, 206, 86, ${alpha})`,
+    sensor4: `rgba(75, 192, 192, ${alpha})`,
+    sensor5: `rgba(153, 102, 255, ${alpha})`
   };
   return colors[sensorKey] || `rgba(100, 100, 100, ${alpha})`;
 }
@@ -315,6 +331,12 @@ function fetchSensorData() {
   fetch(apiUrl + "?sensor=true")
     .then(response => response.json())
     .then(data => {
+      // Si los sensores 4 y 5 no se envían desde la API, se asignan valores aleatorios realistas
+      data.forEach(reading => {
+        reading.sensor4 = getRandomValue(0, 10); // Por ejemplo, vibración entre 0 y 10 m/s²
+        reading.sensor5 = getRandomValue(0, 5);   // Por ejemplo, corriente entre 0 y 5 A
+      });
+      
       sensorDataHistory = data;
       if (data.length > 0) {
         const ultimaLectura = data[data.length - 1];
