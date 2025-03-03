@@ -30,6 +30,9 @@ let sensorChart;                // Instancia del gráfico en modo único
 let sensorCharts = {};          // Instancias de gráficos en modo "todos"
 let sensorDataHistory = [];     // Historial de datos de sensores
 
+// Variable para almacenar el estado actual del LED (false = apagado, true = encendido)
+let ledEncendido = false;
+
 // Función para formatear la fecha de forma más corta (dd/mm/aa hh:mm)
 function formatTimestamp(timestamp) {
   const date = new Date(timestamp);
@@ -46,18 +49,21 @@ function getRandomValue(min, max) {
   return parseFloat((Math.random() * (max - min) + min).toFixed(2));
 }
 
-// Función para comprobar la conexión con el ESP32 mediante POST
-function comprobarConexion() {
+// Función para verificar la conexión con el ESP32 (toggle del LED)
+// Al presionar el botón se invierte el estado del LED: si está apagado se enciende y viceversa.
+function verificarConexion() {
+  // Alterna el estado del LED
+  ledEncendido = !ledEncendido;
+  const status = ledEncendido ? "ON" : "OFF";
+
   fetch(apiUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    // Enviamos una acción de comprobación de conexión
-    body: JSON.stringify({ action: "comprobarConexion" })
+    body: JSON.stringify({ status: status })
   })
   .then(response => response.json())
   .then(data => {
-    // Se actualiza el estado con un mensaje profesional
-    document.getElementById("status").innerText = "Conexión con el ESP32 verificada exitosamente.";
+    document.getElementById("status").innerText = "Conexión verificada: LED " + (ledEncendido ? "encendido" : "apagado");
     console.log("Respuesta:", data);
   })
   .catch(error => {
@@ -203,7 +209,7 @@ function updateSensorChart() {
   }
 }
 
-// Actualizar gráficos en modo "todos"
+// Actualiza gráficos en modo "todos"
 function updateAllSensorCharts() {
   const sensorKeys = ['sensor1', 'sensor2', 'sensor3', 'sensor4', 'sensor5'];
   const chartTypeSelect = document.getElementById("chartTypeSelect");
