@@ -46,20 +46,22 @@ function getRandomValue(min, max) {
   return parseFloat((Math.random() * (max - min) + min).toFixed(2));
 }
 
-// Función para controlar el LED mediante POST
-function controlLed(status) {
+// Función para comprobar la conexión con el ESP32 mediante POST
+function comprobarConexion() {
   fetch(apiUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: status })
+    // Enviamos una acción de comprobación de conexión
+    body: JSON.stringify({ action: "comprobarConexion" })
   })
   .then(response => response.json())
   .then(data => {
-    document.getElementById("status").innerText = "Estado del LED: " + status;
+    // Se actualiza el estado con un mensaje profesional
+    document.getElementById("status").innerText = "Conexión con el ESP32 verificada exitosamente.";
     console.log("Respuesta:", data);
   })
   .catch(error => {
-    document.getElementById("status").innerText = "Error en la solicitud";
+    document.getElementById("status").innerText = "Error al verificar la conexión con el ESP32.";
     console.error("Error:", error);
   });
 }
